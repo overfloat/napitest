@@ -1,57 +1,25 @@
-#![deny(clippy::all)]
+use napi::{CallContext, Error, JsObject, JsUndefined, Result};
+use napi_derive::{js_function, module_exports};
+use once_cell::sync::OnceCell;
+use rillrate::RillRate;
 
-#[macro_use]
-extern crate napi_derive;
+static RILLRATE: OnceCell<RillRate> = OnceCell::new();
 
-use std::convert::TryInto;
-
-use napi::{CallContext, Env, JsNumber, JsObject, Result, Task};
-
-#[cfg(all(unix, not(target_env = "musl"), not(target_arch = "aarch64")))]
-#[global_allocator]
-static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
-
-#[cfg(all(windows, target_arch = "x86_64"))]
-#[global_allocator]
-static ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;
-
-struct AsyncTask(u32);
-
-impl Task for AsyncTask {
-  type Output = u32;
-  type JsValue = JsNumber;
-
-  fn compute(&mut self) -> Result<Self::Output> {
-    use std::thread::sleep;
-    use std::time::Duration;
-    sleep(Duration::from_millis(self.0 as u64));
-    Ok(self.0 * 2)
-  }
-
-  fn resolve(self, env: Env, output: Self::Output) -> Result<Self::JsValue> {
-    env.create_uint32(output)
-  }
+fn js_err(reason: impl ToString) -> Error {
+    Error::from_reason(reason.to_string())
 }
 
 #[module_exports]
 fn init(mut exports: JsObject) -> Result<()> {
-  exports.create_named_method("sync", sync_fn)?;
-
-  exports.create_named_method("sleep", sleep)?;
-  Ok(())
+    exports.create_named_method("install", install)?;
+    Ok(())
 }
 
-#[js_function(1)]
-fn sync_fn(ctx: CallContext) -> Result<JsNumber> {
-  let argument: u32 = ctx.get::<JsNumber>(0)?.try_into()?;
-
-  ctx.env.create_uint32(argument + 100)
-}
-
-#[js_function(1)]
-fn sleep(ctx: CallContext) -> Result<JsObject> {
-  let argument: u32 = ctx.get::<JsNumber>(0)?.try_into()?;
-  let task = AsyncTask(argument);
-  let async_task = ctx.env.spawn(task)?;
-  Ok(async_task.promise_object())
+#[js_function]
+fn install(ctx: CallContext) -> Result<JsUndefined> {
+    let rillrate = RillRate::from_env("js").map_err(js_err)?;
+    RILLRATE
+        .set(rillrate)
+        .map_err(|_| js_err("can't install RillRate shared object"))?;
+    ctx.env.get_undefined()
 }
