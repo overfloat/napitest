@@ -275,6 +275,7 @@ jobs:
 
   build-apple-silicon:
     name: nightly - aarch64-apple-darwin - node@14
+    if: false
     runs-on: macos-latest
 
     steps:
@@ -333,6 +334,7 @@ jobs:
 
   build-android-aarch64:
     name: Build - Android - aarch64
+    if: false
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
@@ -427,6 +429,7 @@ jobs:
 
   test-musl:
     name: Test bindings on alpine - node@${{ matrix.node }}
+    if: false
     needs:
       - build-linux-musl
     strategy:
@@ -515,11 +518,11 @@ jobs:
   dependabot:
     needs:
       - test
-      - test-musl
+      #- test-musl
       - test-aarch64
-      - build-apple-silicon
+      #- build-apple-silicon
       - build-linux-arm7
-      - build-android-aarch64
+      #- build-android-aarch64
     runs-on: ubuntu-latest
     steps:
       - name: auto-merge
@@ -533,11 +536,11 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - test
-      - test-musl
+      #- test-musl
       - test-aarch64
-      - build-apple-silicon
+      #- build-apple-silicon
       - build-linux-arm7
-      - build-android-aarch64
+      #- build-android-aarch64
 
     steps:
       - uses: actions/checkout@v2
