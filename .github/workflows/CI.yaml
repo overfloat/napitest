@@ -41,23 +41,27 @@ jobs:
           override: true
 
       - name: Generate Cargo.lock
+        if: false
         uses: actions-rs/cargo@v1
         with:
           command: generate-lockfile
 
       - name: Cache cargo registry
+        if: false
         uses: actions/cache@v1
         with:
           path: ~/.cargo/registry
           key: stable-${{ matrix.os }}-node@14-cargo-registry-trimmed-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cache cargo index
+        if: false
         uses: actions/cache@v1
         with:
           path: ~/.cargo/git
           key: stable-${{ matrix.os }}-node@14-cargo-index-trimmed-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cache NPM dependencies
+        if: false
         uses: actions/cache@v1
         with:
           path: node_modules
@@ -77,12 +81,14 @@ jobs:
           MACOSX_DEPLOYMENT_TARGET: '10.13'
 
       - name: Upload artifact
+        if: false
         uses: actions/upload-artifact@v2
         with:
           name: bindings-${{ matrix.os }}
           path: ${{ env.APP_NAME }}.*.node
 
       - name: Clear the cargo caches
+        if: false
         run: |
           cargo install cargo-cache --no-default-features --features ci-autoclean
           cargo-cache
