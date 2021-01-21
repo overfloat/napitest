@@ -1,5 +1,12 @@
-const { sync } = require('./index')
+const { install } = require('./index')
 
-console.assert(sync(0) === 100, 'Simple test failed')
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
-console.info('Simple test passed')
+async function test() {
+  install()
+  await sleep(5000)
+}
+
+test()

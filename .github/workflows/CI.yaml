@@ -2,7 +2,7 @@ name: CI
 
 env:
   DEBUG: 'napi:*'
-  APP_NAME: 'package-template'
+  APP_NAME: 'rillrate'
 
 on:
   push:
@@ -563,7 +563,7 @@ jobs:
           path: node_modules
           key: npm-cache-publish-ubuntu-latest-${{ hashFiles('yarn.lock') }}
 
-      - name: 'Install dependencies'
+      - name: Install dependencies
         run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
 
       - name: Download all artifacts
@@ -579,6 +579,13 @@ jobs:
         shell: bash
 
       - name: Publish
+        run: npm publish --access public
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish never
+        if: false
         run: |
           if git log -1 --pretty=%B | grep "^[0-9]\+\.[0-9]\+\.[0-9]\+$";
           then
@@ -591,6 +598,3 @@ jobs:
           else
             echo "Not a release, skipping publish"
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
